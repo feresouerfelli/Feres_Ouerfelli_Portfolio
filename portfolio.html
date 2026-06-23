@@ -4915,36 +4915,50 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       }
     }
 
-    function handleProfilePhotoUpload(event) {
+    async function handleProfilePhotoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX = 500;
-          let w = img.width, h = img.height;
-          if (w > MAX || h > MAX) {
-            const ratio = Math.min(MAX / w, MAX / h);
-            w = Math.round(w * ratio);
-            h = Math.round(h * ratio);
-          }
-          canvas.width = w;
-          canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-          appState.profile.photo_url = dataUrl;
-          document.getElementById('adm-prof-photo').value = '';
+      event.target.value = '';
+      if (dbClient) {
+        const url = await uploadToSupabaseStorage(file, 'profile');
+        if (url) {
+          appState.profile.photo_url = url;
           const preview = document.getElementById('adm-prof-photo-preview');
-          preview.src = dataUrl;
+          preview.src = url;
           preview.style.display = 'block';
-          document.getElementById('hero-profile-pic').src = dataUrl;
-          document.getElementById('about-profile-pic').src = dataUrl;
+          document.getElementById('hero-profile-pic').src = url;
+          document.getElementById('about-profile-pic').src = url;
+        } else {
+          alert('Upload failed. Try again.');
+        }
+      } else {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX = 500;
+            let w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+              const ratio = Math.min(MAX / w, MAX / h);
+              w = Math.round(w * ratio);
+              h = Math.round(h * ratio);
+            }
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            appState.profile.photo_url = dataUrl;
+            const preview = document.getElementById('adm-prof-photo-preview');
+            preview.src = dataUrl;
+            preview.style.display = 'block';
+            document.getElementById('hero-profile-pic').src = dataUrl;
+            document.getElementById('about-profile-pic').src = dataUrl;
+          };
+          img.src = e.target.result;
         };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
+      }
     }
 
     function handleProfileCVUpload(event) {
@@ -4974,6 +4988,18 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       }
     }
 
+    const STORAGE_BUCKET = 'portfolio';
+
+    async function uploadToSupabaseStorage(file, folder) {
+      if (!dbClient) return null;
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = folder + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+      const { data, error } = await dbClient.storage.from(STORAGE_BUCKET).upload(path, file, { upsert: true });
+      if (error) { console.warn('Storage upload error:', error.message); return null; }
+      const { data: urlData } = dbClient.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+      return urlData.publicUrl;
+    }
+
     // Project thumbnail helpers
     function updateProjectThumbPreview(url) {
       const preview = document.getElementById('adm-proj-thumb-preview');
@@ -4986,33 +5012,45 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       }
     }
 
-    function handleProjectThumbUpload(event) {
+    async function handleProjectThumbUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_W = 600, MAX_H = 400;
-          let w = img.width, h = img.height;
-          if (w > MAX_W || h > MAX_H) {
-            const ratio = Math.min(MAX_W / w, MAX_H / h);
-            w = Math.round(w * ratio);
-            h = Math.round(h * ratio);
-          }
-          canvas.width = w;
-          canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-          const thumbInput = document.getElementById('adm-proj-thumb');
-          thumbInput.value = dataUrl;
-          updateProjectThumbPreview(dataUrl);
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
       event.target.value = '';
+      const thumbInput = document.getElementById('adm-proj-thumb');
+      if (dbClient) {
+        thumbInput.value = 'Uploading...';
+        const url = await uploadToSupabaseStorage(file, 'projects');
+        if (url) {
+          thumbInput.value = url;
+          updateProjectThumbPreview(url);
+        } else {
+          thumbInput.value = '';
+          alert('Upload failed. Try again.');
+        }
+      } else {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_W = 600, MAX_H = 400;
+            let w = img.width, h = img.height;
+            if (w > MAX_W || h > MAX_H) {
+              const ratio = Math.min(MAX_W / w, MAX_H / h);
+              w = Math.round(w * ratio);
+              h = Math.round(h * ratio);
+            }
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            thumbInput.value = dataUrl;
+            updateProjectThumbPreview(dataUrl);
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
     }
 
     // Live URL preview on typing
