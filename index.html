@@ -5163,10 +5163,56 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
               <span><b>${displayName}</b> (${skill.category})</span>
               <span class="admin-label">Proficiency: ${skill.percentage}%</span>
             </div>
-            <button class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="deleteSkillFromData('${skill.id}')">REMOVE</button>
+            <div style="display:flex; gap: 8px;">
+              <button class="admin-btn" style="padding: 4px 8px;" onclick="editSkillInForm('${skill.id}')">EDIT</button>
+              <button class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="deleteSkillFromData('${skill.id}')">REMOVE</button>
+            </div>
           </div>
         `;
       });
+    }
+
+    function editSkillInForm(id) {
+      const s = appState.skills.find(sk => sk.id === id);
+      if (!s) return;
+      document.getElementById('adm-new-skill-name-en').value = s.name_en || '';
+      document.getElementById('adm-new-skill-name-fr').value = s.name_fr || '';
+      document.getElementById('adm-new-skill-cat').value = s.category || 'frontend';
+      document.getElementById('adm-new-skill-pct').value = s.percentage || 0;
+      document.getElementById('adm-new-skill-pct').nextElementSibling.textContent = (s.percentage || 0) + '%';
+      window._editingSkillId = id;
+      document.querySelector('#admin-sec-skills .admin-card-title').textContent = 'EDITING SKILL: ' + (s.name_en || s.name_fr || '');
+      const addBtn = document.querySelector('#admin-sec-skills .admin-btn-accent');
+      if (addBtn) { addBtn.textContent = 'UPDATE'; addBtn.onclick = updateSkillInData; }
+      document.getElementById('adm-new-skill-name-en').focus();
+    }
+
+    function updateSkillInData() {
+      const id = window._editingSkillId;
+      if (!id) return addNewSkillToData();
+      const idx = appState.skills.findIndex(s => s.id === id);
+      if (idx === -1) return;
+      const nameEn = document.getElementById('adm-new-skill-name-en').value.trim();
+      const nameFr = document.getElementById('adm-new-skill-name-fr').value.trim();
+      const category = document.getElementById('adm-new-skill-cat').value;
+      const percentage = parseInt(document.getElementById('adm-new-skill-pct').value);
+      if (!nameEn && !nameFr) { alert("Please input name."); return; }
+      appState.skills[idx] = { ...appState.skills[idx], name_en: nameEn || nameFr, name_fr: nameFr || nameEn, category, percentage };
+      resetSkillForm();
+      renderAdminSkillsList();
+      localStore.set("portfolio_skills", appState.skills);
+      showAdminToast('✅ Skill updated!', 'success');
+    }
+
+    function resetSkillForm() {
+      window._editingSkillId = null;
+      document.getElementById('adm-new-skill-name-en').value = '';
+      document.getElementById('adm-new-skill-name-fr').value = '';
+      document.getElementById('adm-new-skill-cat').value = 'frontend';
+      document.getElementById('adm-new-skill-pct').value = 80;
+      document.querySelector('#admin-sec-skills .admin-card-title').textContent = 'ADD NEW SKILL';
+      const addBtn = document.querySelector('#admin-sec-skills .admin-btn-accent');
+      if (addBtn) { addBtn.textContent = 'ADD'; addBtn.onclick = addNewSkillToData; }
     }
 
     function addNewSkillToData() {
@@ -5351,7 +5397,10 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
               <span><b>${title}</b> @ ${org}</span>
               <span class="admin-label">${t.year} [${t.type}]</span>
             </div>
-            <button class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="deleteTimelineNode('${t.id}')">REMOVE</button>
+            <div style="display:flex; gap: 8px;">
+              <button class="admin-btn" style="padding: 4px 8px;" onclick="editTimelineInForm('${t.id}')">EDIT</button>
+              <button class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="deleteTimelineNode('${t.id}')">REMOVE</button>
+            </div>
           </div>
         `;
       });
@@ -5401,6 +5450,52 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       localStore.set("portfolio_timeline", appState.timeline);
     }
 
+    function editTimelineInForm(id) {
+      const t = appState.timeline.find(item => item.id === id);
+      if (!t) return;
+      document.getElementById('adm-new-time-year').value = t.year || '';
+      document.getElementById('adm-new-time-type').value = t.type || 'work';
+      document.getElementById('adm-new-time-title-en').value = t.title_en || '';
+      document.getElementById('adm-new-time-title-fr').value = t.title_fr || '';
+      document.getElementById('adm-new-time-org-en').value = t.organization_en || '';
+      document.getElementById('adm-new-time-org-fr').value = t.organization_fr || '';
+      document.getElementById('adm-new-time-desc-en').value = t.description_en || '';
+      document.getElementById('adm-new-time-desc-fr').value = t.description_fr || '';
+      window._editingTimelineId = id;
+      const addBtn = document.querySelector('#admin-sec-timeline .admin-btn-accent');
+      if (addBtn) { addBtn.textContent = 'UPDATE'; addBtn.onclick = updateTimelineInData; }
+      document.getElementById('adm-new-time-year').focus();
+    }
+
+    function updateTimelineInData() {
+      const id = window._editingTimelineId;
+      if (!id) return addNewTimelineNode();
+      const idx = appState.timeline.findIndex(t => t.id === id);
+      if (idx === -1) return;
+      appState.timeline[idx] = {
+        ...appState.timeline[idx],
+        year: document.getElementById('adm-new-time-year').value.trim(),
+        type: document.getElementById('adm-new-time-type').value,
+        title_en: document.getElementById('adm-new-time-title-en').value.trim() || document.getElementById('adm-new-time-title-fr').value.trim(),
+        title_fr: document.getElementById('adm-new-time-title-fr').value.trim() || document.getElementById('adm-new-time-title-en').value.trim(),
+        organization_en: document.getElementById('adm-new-time-org-en').value.trim() || document.getElementById('adm-new-time-org-fr').value.trim(),
+        organization_fr: document.getElementById('adm-new-time-org-fr').value.trim() || document.getElementById('adm-new-time-org-en').value.trim(),
+        description_en: document.getElementById('adm-new-time-desc-en').value.trim() || document.getElementById('adm-new-time-desc-fr').value.trim(),
+        description_fr: document.getElementById('adm-new-time-desc-fr').value.trim() || document.getElementById('adm-new-time-desc-en').value.trim()
+      };
+      resetTimelineForm();
+      renderAdminTimelineList();
+      localStore.set("portfolio_timeline", appState.timeline);
+      showAdminToast('✅ Timeline updated!', 'success');
+    }
+
+    function resetTimelineForm() {
+      window._editingTimelineId = null;
+      ['adm-new-time-year','adm-new-time-title-en','adm-new-time-title-fr','adm-new-time-org-en','adm-new-time-org-fr','adm-new-time-desc-en','adm-new-time-desc-fr'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+      const addBtn = document.querySelector('#admin-sec-timeline .admin-btn-accent');
+      if (addBtn) { addBtn.textContent = 'ADD NODE'; addBtn.onclick = addNewTimelineNode; }
+    }
+
     // Testimonials
     function renderAdminTestimonialsList() {
       const list = document.getElementById('admin-testimonials-list-container');
@@ -5414,7 +5509,10 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
               <span><b>${item.name}</b> (${role}, ${item.company})</span>
               <span class="admin-label">"${quote.substring(0, 40)}..."</span>
             </div>
-            <button class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="deleteTestimonial('${item.id}')">REMOVE</button>
+            <div style="display:flex; gap: 8px;">
+              <button class="admin-btn" style="padding: 4px 8px;" onclick="editTestimonialInForm('${item.id}')">EDIT</button>
+              <button class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="deleteTestimonial('${item.id}')">REMOVE</button>
+            </div>
           </div>
         `;
       });
@@ -5462,6 +5560,54 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       localStore.set("portfolio_testimonials", appState.testimonials);
     }
 
+    function editTestimonialInForm(id) {
+      const t = appState.testimonials.find(item => item.id === id);
+      if (!t) return;
+      document.getElementById('adm-new-test-name').value = t.name || '';
+      document.getElementById('adm-new-test-company').value = t.company || '';
+      document.getElementById('adm-new-test-rating').value = t.rating || 5;
+      document.getElementById('adm-new-test-role-en').value = t.role_en || '';
+      document.getElementById('adm-new-test-role-fr').value = t.role_fr || '';
+      document.getElementById('adm-new-test-quote-en').value = t.quote_en || t.text_en || '';
+      document.getElementById('adm-new-test-quote-fr').value = t.quote_fr || t.text_fr || '';
+      window._editingTestimonialId = id;
+      const addBtn = document.querySelector('#admin-sec-testimonials .admin-btn-accent');
+      if (addBtn) { addBtn.textContent = 'UPDATE'; addBtn.onclick = updateTestimonialInData; }
+      document.getElementById('adm-new-test-name').focus();
+    }
+
+    function updateTestimonialInData() {
+      const id = window._editingTestimonialId;
+      if (!id) return addNewTestimonial();
+      const idx = appState.testimonials.findIndex(t => t.id === id);
+      if (idx === -1) return;
+      const name = document.getElementById('adm-new-test-name').value.trim();
+      const quoteEn = document.getElementById('adm-new-test-quote-en').value.trim();
+      const quoteFr = document.getElementById('adm-new-test-quote-fr').value.trim();
+      if (!name || (!quoteEn && !quoteFr)) { alert("Provide name and quote."); return; }
+      appState.testimonials[idx] = {
+        ...appState.testimonials[idx],
+        name,
+        role_en: document.getElementById('adm-new-test-role-en').value.trim() || document.getElementById('adm-new-test-role-fr').value.trim(),
+        role_fr: document.getElementById('adm-new-test-role-fr').value.trim() || document.getElementById('adm-new-test-role-en').value.trim(),
+        company: document.getElementById('adm-new-test-company').value.trim(),
+        quote_en: quoteEn || quoteFr,
+        quote_fr: quoteFr || quoteEn,
+        rating: parseInt(document.getElementById('adm-new-test-rating').value) || 5
+      };
+      resetTestimonialForm();
+      renderAdminTestimonialsList();
+      localStore.set("portfolio_testimonials", appState.testimonials);
+      showAdminToast('✅ Testimonial updated!', 'success');
+    }
+
+    function resetTestimonialForm() {
+      window._editingTestimonialId = null;
+      ['adm-new-test-name','adm-new-test-company','adm-new-test-role-en','adm-new-test-role-fr','adm-new-test-quote-en','adm-new-test-quote-fr'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+      const addBtn = document.querySelector('#admin-sec-testimonials .admin-btn-accent');
+      if (addBtn) { addBtn.textContent = 'ADD TESTIMONIAL'; addBtn.onclick = addNewTestimonial; }
+    }
+
     // Dashboard Certificates
     function renderAdminCertificatesList() {
       const list = document.getElementById('admin-certificates-list-container');
@@ -5476,7 +5622,10 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
               <span><b>${cert.icon || '🏆'} ${name}</b></span>
               <span class="admin-label">${issuer} — ${cert.date || ''}</span>
             </div>
-            <button class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="deleteCertificate('${cert.id}')">REMOVE</button>
+            <div style="display:flex; gap: 8px;">
+              <button class="admin-btn" style="padding: 4px 8px;" onclick="editCertificateInForm('${cert.id}')">EDIT</button>
+              <button class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="deleteCertificate('${cert.id}')">REMOVE</button>
+            </div>
           </div>
         `;
       });
@@ -5528,6 +5677,55 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       appState.certificates = appState.certificates.filter(c => c.id !== id);
       renderAdminCertificatesList();
       localStore.set("portfolio_certificates", appState.certificates);
+    }
+
+    function editCertificateInForm(id) {
+      const c = appState.certificates.find(cert => cert.id === id);
+      if (!c) return;
+      document.getElementById('adm-new-cert-name-en').value = c.name_en || '';
+      document.getElementById('adm-new-cert-name-fr').value = c.name_fr || '';
+      document.getElementById('adm-new-cert-issuer-en').value = c.issuer_en || '';
+      document.getElementById('adm-new-cert-issuer-fr').value = c.issuer_fr || '';
+      document.getElementById('adm-new-cert-date').value = c.date || '';
+      document.getElementById('adm-new-cert-id').value = c.credential_id || '';
+      document.getElementById('adm-new-cert-url').value = c.verify_url || '';
+      document.getElementById('adm-new-cert-icon').value = c.icon || '🏆';
+      window._editingCertId = id;
+      const addBtn = document.querySelector('#admin-sec-certificates .admin-btn-accent');
+      if (addBtn) { addBtn.textContent = 'UPDATE'; addBtn.onclick = updateCertificateInData; }
+      document.getElementById('adm-new-cert-name-en').focus();
+    }
+
+    function updateCertificateInData() {
+      const id = window._editingCertId;
+      if (!id) return addNewCertificate();
+      const idx = appState.certificates.findIndex(c => c.id === id);
+      if (idx === -1) return;
+      const nameEn = document.getElementById('adm-new-cert-name-en').value.trim();
+      const nameFr = document.getElementById('adm-new-cert-name-fr').value.trim();
+      if (!nameEn && !nameFr) { alert('Please provide a certificate name.'); return; }
+      appState.certificates[idx] = {
+        ...appState.certificates[idx],
+        name_en: nameEn || nameFr,
+        name_fr: nameFr || nameEn,
+        issuer_en: document.getElementById('adm-new-cert-issuer-en').value.trim() || document.getElementById('adm-new-cert-issuer-fr').value.trim(),
+        issuer_fr: document.getElementById('adm-new-cert-issuer-fr').value.trim() || document.getElementById('adm-new-cert-issuer-en').value.trim(),
+        date: document.getElementById('adm-new-cert-date').value.trim(),
+        credential_id: document.getElementById('adm-new-cert-id').value.trim(),
+        verify_url: document.getElementById('adm-new-cert-url').value.trim(),
+        icon: document.getElementById('adm-new-cert-icon').value.trim() || '🏆'
+      };
+      resetCertForm();
+      renderAdminCertificatesList();
+      localStore.set("portfolio_certificates", appState.certificates);
+      showAdminToast('✅ Certificate updated!', 'success');
+    }
+
+    function resetCertForm() {
+      window._editingCertId = null;
+      ['adm-new-cert-name-en','adm-new-cert-name-fr','adm-new-cert-issuer-en','adm-new-cert-issuer-fr','adm-new-cert-date','adm-new-cert-id','adm-new-cert-url','adm-new-cert-icon'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+      const addBtn = document.querySelector('#admin-sec-certificates .admin-btn-accent');
+      if (addBtn) { addBtn.textContent = 'ADD CERTIFICATE'; addBtn.onclick = addNewCertificate; }
     }
 
     // Inbox Messages
