@@ -5892,12 +5892,13 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
           function mapTimeline(t, i) {
             return {
               id: ensureUUID(t.id),
-              year: t.year || '',                       // required NOT NULL
-              role_en: t.role_en || t.title_en || t.title || '',
-              role_fr: t.role_fr || t.title_fr || t.role_en || '',
-              desc_en: t.desc_en || t.description_en || '',
-              desc_fr: t.desc_fr || t.description_fr || '',
-              company: t.company || t.organization_en || '',
+              year: t.year || '',
+              title_en: t.title_en || t.role_en || '',
+              title_fr: t.title_fr || t.role_fr || '',
+              description_en: t.description_en || t.desc_en || '',
+              description_fr: t.description_fr || t.desc_fr || '',
+              organization_en: t.organization_en || t.company || '',
+              organization_fr: t.organization_fr || '',
               type: t.type || 'work',
               sort_order: i
             };
