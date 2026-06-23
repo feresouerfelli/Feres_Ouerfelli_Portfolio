@@ -5924,14 +5924,16 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
 
           function mapCertificate(c) {
             return {
-              id: c.id,   // certificates table uses TEXT id (we created it)
+              id: c.id,
               name_en: c.name_en || '',
               name_fr: c.name_fr || c.name_en || '',
               issuer_en: c.issuer_en || '',
               issuer_fr: c.issuer_fr || c.issuer_en || '',
               date: c.date || '',
+              credential_id: c.credential_id || '',
               badge_url: c.badge_url || c.icon || '',
-              verify_url: c.verify_url || ''
+              verify_url: c.verify_url || '',
+              icon: c.icon || '🏆'
             };
           }
 
