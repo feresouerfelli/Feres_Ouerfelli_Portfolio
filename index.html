@@ -4961,23 +4961,32 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       }
     }
 
-    function handleProfileCVUpload(event) {
+    async function handleProfileCVUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-      if (file.size > 2 * 1024 * 1024) {
-        alert("The file is too large (maximum 2MB for browser local storage). Please upload a smaller PDF.");
-        event.target.value = '';
-        return;
+      event.target.value = '';
+      if (dbClient) {
+        const url = await uploadToSupabaseStorage(file, 'cv');
+        if (url) {
+          appState.profile.cv_url = url;
+          document.getElementById('adm-prof-cv').value = url;
+          alert("CV uploaded to cloud! Click 'SAVE CHANGES' to save.");
+        } else {
+          alert("Upload failed. Try again.");
+        }
+      } else {
+        if (file.size > 2 * 1024 * 1024) {
+          alert("File too large (max 2MB for local storage).");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          appState.profile.cv_url = e.target.result;
+          document.getElementById('adm-prof-cv').value = e.target.result;
+          alert("CV loaded locally. Click 'SAVE CHANGES' to save.");
+        };
+        reader.readAsDataURL(file);
       }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target.result;
-        // Update both state and input field instantly
-        appState.profile.cv_url = dataUrl;
-        document.getElementById('adm-prof-cv').value = dataUrl;
-        alert("CV file loaded successfully! Click 'SAVE CHANGES' at the bottom of the profile tab to save.");
-      };
-      reader.readAsDataURL(file);
     }
 
     function handleCVClick(event) {
