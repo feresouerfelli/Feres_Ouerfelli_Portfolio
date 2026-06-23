@@ -3522,7 +3522,11 @@ new Phaser.Game(config);`;
         return val ? JSON.parse(val) : fallback;
       },
       set: (key, val) => {
-        localStorage.setItem(key, JSON.stringify(val));
+        try {
+          localStorage.setItem(key, JSON.stringify(val));
+        } catch(e) {
+          console.warn('localStorage save failed for ' + key + ':', e.message);
+        }
       }
     };
 
@@ -4916,16 +4920,29 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
-        const dataUrl = e.target.result;
-        // Set the data URL as the photo in state and preview immediately
-        appState.profile.photo_url = dataUrl;
-        document.getElementById('adm-prof-photo').value = '';
-        const preview = document.getElementById('adm-prof-photo-preview');
-        preview.src = dataUrl;
-        preview.style.display = 'block';
-        // Apply to portfolio immediately
-        document.getElementById('hero-profile-pic').src = dataUrl;
-        document.getElementById('about-profile-pic').src = dataUrl;
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX = 500;
+          let w = img.width, h = img.height;
+          if (w > MAX || h > MAX) {
+            const ratio = Math.min(MAX / w, MAX / h);
+            w = Math.round(w * ratio);
+            h = Math.round(h * ratio);
+          }
+          canvas.width = w;
+          canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          appState.profile.photo_url = dataUrl;
+          document.getElementById('adm-prof-photo').value = '';
+          const preview = document.getElementById('adm-prof-photo-preview');
+          preview.src = dataUrl;
+          preview.style.display = 'block';
+          document.getElementById('hero-profile-pic').src = dataUrl;
+          document.getElementById('about-profile-pic').src = dataUrl;
+        };
+        img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -4974,15 +4991,28 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
-        const dataUrl = e.target.result;
-        // Put the base64 data URL into the thumb field so saveProjectToData() picks it up
-        const thumbInput = document.getElementById('adm-proj-thumb');
-        thumbInput.value = dataUrl;
-        updateProjectThumbPreview(dataUrl);
-        // Clear file input so same file can be re-selected
-        event.target.value = '';
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_W = 600, MAX_H = 400;
+          let w = img.width, h = img.height;
+          if (w > MAX_W || h > MAX_H) {
+            const ratio = Math.min(MAX_W / w, MAX_H / h);
+            w = Math.round(w * ratio);
+            h = Math.round(h * ratio);
+          }
+          canvas.width = w;
+          canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          const thumbInput = document.getElementById('adm-proj-thumb');
+          thumbInput.value = dataUrl;
+          updateProjectThumbPreview(dataUrl);
+        };
+        img.src = e.target.result;
       };
       reader.readAsDataURL(file);
+      event.target.value = '';
     }
 
     // Live URL preview on typing
