@@ -5189,12 +5189,14 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       document.getElementById('adm-new-skill-name-en').value = '';
       document.getElementById('adm-new-skill-name-fr').value = '';
       renderAdminSkillsList();
+      localStore.set("portfolio_skills", appState.skills);
     }
 
     function deleteSkillFromData(id) {
       if(!confirm("Remove skill record?")) return;
       appState.skills = appState.skills.filter(s => s.id !== id);
       renderAdminSkillsList();
+      localStore.set("portfolio_skills", appState.skills);
     }
 
     // Dashboard Projects
@@ -5324,12 +5326,15 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
 
       clearProjectForm();
       renderAdminProjectsList();
+      localStore.set("portfolio_projects", appState.projects);
+      showAdminToast('✅ Project saved!', 'success');
     }
 
     function deleteProjectFromData(id) {
       if(!confirm("Delete project?")) return;
       appState.projects = appState.projects.filter(p => p.id !== id);
       renderAdminProjectsList();
+      localStore.set("portfolio_projects", appState.projects);
     }
 
     // Dashboard Timeline Nodes
@@ -5386,12 +5391,14 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       document.getElementById('adm-new-time-desc-fr').value = '';
       
       renderAdminTimelineList();
+      localStore.set("portfolio_timeline", appState.timeline);
     }
 
     function deleteTimelineNode(id) {
       if(!confirm("Remove node?")) return;
       appState.timeline = appState.timeline.filter(t => t.id !== id);
       renderAdminTimelineList();
+      localStore.set("portfolio_timeline", appState.timeline);
     }
 
     // Testimonials
@@ -5445,12 +5452,14 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       document.getElementById('adm-new-test-quote-fr').value = '';
       
       renderAdminTestimonialsList();
+      localStore.set("portfolio_testimonials", appState.testimonials);
     }
 
     function deleteTestimonial(id) {
       if(!confirm("Remove review?")) return;
       appState.testimonials = appState.testimonials.filter(t => t.id !== id);
       renderAdminTestimonialsList();
+      localStore.set("portfolio_testimonials", appState.testimonials);
     }
 
     // Dashboard Certificates
@@ -5511,12 +5520,14 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
       document.getElementById('adm-new-cert-icon').value = '🏆';
 
       renderAdminCertificatesList();
+      localStore.set("portfolio_certificates", appState.certificates);
     }
 
     function deleteCertificate(id) {
       if (!confirm('Remove certificate?')) return;
       appState.certificates = appState.certificates.filter(c => c.id !== id);
       renderAdminCertificatesList();
+      localStore.set("portfolio_certificates", appState.certificates);
     }
 
     // Inbox Messages
