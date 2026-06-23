@@ -5868,8 +5868,6 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
           }
 
           function mapProject(p, i) {
-            // NOTE: encoded_source & execution_type are LOCAL-ONLY (large base64 demo code)
-            // They are intentionally excluded from Supabase to avoid payload size issues
             return {
               id: ensureUUID(p.id),
               title: p.title_en || p.title || '',
@@ -5877,14 +5875,16 @@ LinkedIn: linkedin.com/in/feresouerfelli`);
               title_fr: p.title_fr || p.title_en || '',
               description_en: p.description_en || p.description || '',
               description_fr: p.description_fr || p.description_en || '',
-              long_description_en: p.long_description_en || p.long_desc_en || '',
-              long_description_fr: p.long_description_fr || p.long_desc_fr || '',
+              long_description_en: p.long_description_en || '',
+              long_description_fr: p.long_description_fr || '',
               category: p.category || 'web',
-              stack: Array.isArray(p.stack) ? p.stack : (p.stack || p.tech || '').split(',').map(s => s.trim()).filter(Boolean),
+              stack: Array.isArray(p.stack) ? p.stack : (p.stack || '').split(',').map(s => s.trim()).filter(Boolean),
+              execution_type: p.execution_type || 'js',
+              encoded_source: p.encoded_source || '',
               featured: !!p.featured,
-              demo_url: p.live_url || p.demo_url || '',
+              thumbnail_url: p.thumbnail_url || p.image_url || '',
+              live_url: p.live_url || p.demo_url || '',
               github_url: p.github_url || '',
-              image_url: p.image_url || '',
               sort_order: i
             };
           }
